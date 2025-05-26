@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>貪食蛇遊戲</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: rainbow 3s ease-in-out infinite;
+    }
+
+    @keyframes rainbow {
+      0%, 100% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(180deg); }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    canvas {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      display: block;
+      margin: 20px auto;
+      border-radius: 15px;
+      box-shadow: 
+        0 0 20px rgba(0, 255, 127, 0.3),
+        inset 0 0 20px rgba(0, 0, 0, 0.2);
+      border: 3px solid rgba(0, 255, 127, 0.5);
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 25px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+      font-size: 16px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 1);
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      color: white;
+      padding: 12px 30px;
+      margin: 8px;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    .score-display {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      padding: 10px 20px;
+      background: rgba(0, 255, 127, 0.1);
+      border-radius: 15px;
+      border: 2px solid rgba(0, 255, 127, 0.3);
+      text-shadow: 0 0 10px rgba(0, 255, 127, 0.5);
+    }
+
+    .ranking-section {
+      margin-top: 2rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 15px;
+      padding: 1.5rem;
+    }
+
+    .ranking-section h3 {
+      margin-bottom: 1rem;
+      color: #ffd700;
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    #ranking-list {
+      list-style: none;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    #ranking-list li {
+      padding: 8px 12px;
+      margin: 5px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      border-left: 4px solid #ffd700;
+      transition: all 0.3s ease;
+    }
+
+    #ranking-list li:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(5px);
+    }
+
+    .game-over-container {
+      background: rgba(255, 0, 0, 0.1);
+      border: 2px solid rgba(255, 0, 0, 0.3);
+    }
+
+    .game-over-container h2 {
+      color: #ff6b6b;
+      text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+      margin-bottom: 1rem;
+    }
+
+    #login-section, #game-section, #game-over-section {
+      display: none;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+    }
+
+    footer a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    footer a:hover {
+      color: white;
+    }
+
+    .github-icon {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-left: 5px;
+      filter: invert(1);
+      transition: transform 0.3s ease;
+    }
+
+    .github-icon:hover {
+      transform: scale(1.2);
+    }
+
+    .control-hint {
+      margin-top: 1rem;
+      font-size: 14px;
+      opacity: 0.8;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+      
+      canvas {
+        width: 300px;
+        height: 300px;
+      }
+    }
+
+    /* 自定義滾動條 */
+    #ranking-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #ranking-list::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 3px;
+    }
+
+    #ranking-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 3px;
+    }
+
+    #ranking-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <h1>🐍 貪食蛇遊戲</h1>
+
+  <div id="login-section" class="container">
+    <h2>✨ 歡迎來到貪食蛇世界</h2>
+    <div class="input-group">
+      <input type="text" id="username" placeholder="🎮 輸入你的遊戲暱稱">
+      <input type="password" id="password" placeholder="🔒 設定你的密碼">
+    </div>
+    <button onclick="login()">🚀 開始遊戲</button>
+    <button onclick="register()">📝 創建帳號</button>
+  </div>
+
+  <div id="game-section" class="container">
+    <div class="score-display">
+      🎯 分數：<span id="score">0</span>
+    </div>
+    <canvas id="game" width="400" height="400"></canvas>
+    <div class="control-hint">
+      ⌨️ 使用方向鍵控制蛇的移動
+    </div>
+
+    <div class="ranking-section">
+      <h3>🏆 全球排行榜</h3>
+      <ul id="ranking-list"></ul>
+    </div>
+  </div>
+
+  <div id="game-over-section" class="container game-over-container">
+    <h2>💀 遊戲結束</h2>
+    <div class="score-display">
+      🎯 你的得分：<span id="final-score"></span>
+    </div>
+    <button onclick="restartGame()">🔄 再來一局</button>
+    <button onclick="goHome()">🏠 返回首頁</button>
+  </div>
+
+  <footer>
+    © 2025 Copyright by Leroy Chang
+    | <a href="https://github.com/mecho10" target="_blank">
+      <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/github.svg" alt="GitHub" class="github-icon">
+    </a>
+  </footer>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const box = 20;
+    let score = 0;
+    let snake = [];
+    let direction = null;
+    let food = {};
+    let game;
+
+    document.addEventListener("keydown", changeDirection);
+
+    function initGame() {
+      score = 0;
+      document.getElementById("score").innerText = score;
+      snake = [{ x: 9 * box, y: 10 * box }];
+      direction = null;
+      food = spawnFood();
+    }
+
+    function spawnFood() {
+      return {
+        x: Math.floor(Math.random() * 20) * box,
+        y: Math.floor(Math.random() * 20) * box
+      };
+    }
+
+    function draw() {
+      const gradient = ctx.createLinearGradient(0, 0, 400, 400);
+      gradient.addColorStop(0, '#1a1a2e');
+      gradient.addColorStop(1, '#16213e');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 400, 400);
+
+      for (let i = 0; i < snake.length; i++) {
+        ctx.save();
+        ctx.fillStyle = i === 0 ? '#00ff7f' : `rgba(0, 255, 127, ${1 - i * 0.1})`;
+        ctx.shadowColor = i === 0 ? '#00ff7f' : 'transparent';
+        ctx.shadowBlur = i === 0 ? 10 : 0;
+        ctx.fillRect(snake[i].x + 1, snake[i].y + 1, box - 2, box - 2);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#ff4757';
+      ctx.beginPath();
+      ctx.arc(food.x + box / 2, food.y + box / 2, box / 2 - 2, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.restore();
+
+      let headX = snake[0].x;
+      let headY = snake[0].y;
+
+      if (direction === "LEFT") headX -= box;
+      if (direction === "RIGHT") headX += box;
+      if (direction === "UP") headY -= box;
+      if (direction === "DOWN") headY += box;
+
+      if (headX === food.x && headY === food.y) {
+        score++;
+        document.getElementById("score").innerText = score;
+        food = spawnFood();
+      } else {
+        snake.pop();
+      }
+
+      let newHead = { x: headX, y: headY };
+
+      if (
+        headX < 0 || headX >= 400 || headY < 0 || headY >= 400 ||
+        collision(newHead, snake)
+      ) {
+        clearInterval(game);
+        gameOver();
+        return;
+      }
+
+      snake.unshift(newHead);
+    }
+
+    function collision(head, array) {
+      return array.some(segment => segment.x === head.x && segment.y === head.y);
+    }
+
+    function changeDirection(e) {
+      if (["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"].includes(e.key)) e.preventDefault();
+      if (e.key === "ArrowLeft" && direction !== "RIGHT") direction = "LEFT";
+      if (e.key === "ArrowUp" && direction !== "DOWN") direction = "UP";
+      if (e.key === "ArrowRight" && direction !== "LEFT") direction = "RIGHT";
+      if (e.key === "ArrowDown" && direction !== "UP") direction = "DOWN";
+    }
+
+    function uploadScore(score) {
+      const token = localStorage.getItem("accessToken");
+      if (!token) return alert("未登入，無法上傳分數");
+
+      fetch("/api/score/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ score })
+      })
+        .then(res => res.json())
+        .then(() => loadRankings())
+        .catch(err => console.error("上傳失敗", err));
+    }
+
+    function loadRankings() {
+      fetch("/api/rankings/")
+        .then(res => res.json())
+        .then(data => {
+          const ul = document.getElementById("ranking-list");
+          ul.innerHTML = "";
+          data.forEach((user, index) => {
+            const li = document.createElement("li");
+            const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`;
+            li.textContent = `${medal} ${user.username}: ${user.high_score} 分`;
+            ul.appendChild(li);
+          });
+        })
+        .catch(err => console.error("排行榜載入失敗", err));
+    }
+
+    function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      fetch("/api/login/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.access) {
+            localStorage.setItem("accessToken", data.access);
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("game-section").style.display = "block";
+            initGame();
+            loadRankings();
+            game = setInterval(draw, 150);
+          } else {
+            alert("登入失敗！");
+          }
+        });
+    }
+
+    function register() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      fetch("/api/register/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password })
+      })
+        .then(res => {
+          if (res.ok) alert("註冊成功，請登入");
+          else res.json().then(data => alert("註冊失敗：" + JSON.stringify(data)));
+        });
+    }
+
+    function gameOver() {
+      document.getElementById("final-score").innerText = score;
+      document.getElementById("game-section").style.display = "none";
+      document.getElementById("game-over-section").style.display = "block";
+      uploadScore(score);
+    }
+
+    function restartGame() {
+      document.getElementById("game-over-section").style.display = "none";
+      document.getElementById("game-section").style.display = "block";
+      initGame();
+      game = setInterval(draw, 150);
+    }
+
+    function goHome() {
+      document.getElementById("game-over-section").style.display = "none";
+      document.getElementById("login-section").style.display = "block";
+      localStorage.removeItem("accessToken");
+    }
+
+    document.getElementById("login-section").style.display = "block";
+  </script>
+</body>
+</html>
