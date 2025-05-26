@@ -4,11 +4,10 @@ services:
     env: python
     plan: free
     buildCommand: |
-      cd gameapi
       pip install -r requirements.txt
       python manage.py collectstatic --noinput
       python manage.py migrate
-    startCommand: cd gameapi && gunicorn gameapi.wsgi
+    startCommand: gunicorn gameapi.wsgi
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: gameapi.settings
