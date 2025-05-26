@@ -56,13 +56,14 @@ gameapi/
 
 2.登入後上傳分數失敗
 **原因**：JWT token 未儲存或未加到 Header。  
-**解法**：請確認登入成功後有將 token 存入 `localStorage`，並加上：
+**解法**：確認登入成功後有將 token 存入 `localStorage`，並加上：
 
-```js
+```
+js
 headers: {
   'Authorization': 'Bearer ' + accessToken
 }
-
+```
 3.排行榜顯示錯誤或為空
 - 沒有使用者上傳過分數
 - `/api/rankings/` API 設計問題
@@ -81,6 +82,7 @@ headers: {
 ```bash
 python manage.py collectstatic --noinput
 ```
+
 **心得分享**  
   部署過程雖然辛苦，但透過不斷嘗試與學習，解決了不少問題。對於初次部署的開發者，建議務必耐心，且多善用官方文件與社群資源以及萬能的chatGPT。
   
