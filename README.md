@@ -88,4 +88,4 @@ python manage.py collectstatic --noinput
   
 # 作者
 Made by **Leroy Chang**  
-GitHub: [@your-github-username](https://github.com/your-github-username)
+GitHub: [@mecho10]([https://github.com/mecho10])
